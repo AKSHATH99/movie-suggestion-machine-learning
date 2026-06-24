@@ -1,0 +1,184 @@
+:root {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #f7f7f8;
+  background: #111217;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.page {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 72px 0;
+}
+
+.header {
+  max-width: 720px;
+  margin-bottom: 42px;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: #e8b84a;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  line-height: 1;
+}
+
+.intro {
+  margin: 18px 0 12px;
+  color: #a7a9b1;
+  font-size: 1.08rem;
+}
+
+.selection-count {
+  margin: 0 0 28px;
+  color: #e8b84a;
+  font-weight: 700;
+}
+
+.send-button {
+  margin: 0 0 18px;
+  padding: 12px 18px;
+  color: #111217;
+  background: #e8b84a;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.send-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.search {
+  width: 100%;
+  padding: 16px 18px;
+  color: #fff;
+  background: #1c1e25;
+  border: 1px solid #343640;
+  border-radius: 10px;
+  outline: none;
+}
+
+.search:focus {
+  border-color: #e8b84a;
+  box-shadow: 0 0 0 3px rgb(232 184 74 / 15%);
+}
+
+.movie-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.movie-card {
+  display: flex;
+  min-height: 270px;
+  padding: 22px;
+  color: inherit;
+  text-align: left;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #1a1b21;
+  border: 1px solid #292b33;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 150ms ease, transform 150ms ease;
+}
+
+.movie-card:hover {
+  border-color: #777164;
+  transform: translateY(-2px);
+}
+
+.movie-card.selected {
+  background: #262318;
+  border-color: #e8b84a;
+  box-shadow: 0 0 0 2px rgb(232 184 74 / 15%);
+}
+
+.movie-card.unavailable {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.movie-card h2 {
+  margin: 6px 0 0;
+  font-size: 1.25rem;
+}
+
+.year,
+.rating {
+  margin: 0;
+  color: #e8b84a;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.movie-details p {
+  margin: 6px 0 0;
+  color: #b8bac2;
+  font-size: 0.86rem;
+}
+
+.overview {
+  display: -webkit-box;
+  margin: 22px 0;
+  overflow: hidden;
+  color: #b8bac2;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+}
+
+.status {
+  color: #b8bac2;
+}
+
+.recommendations {
+  margin-top: 42px;
+  padding: 24px;
+  background: #1a1b21;
+  border: 1px solid #292b33;
+  border-radius: 12px;
+}
+
+.recommendations h2 {
+  margin: 0 0 16px;
+}
+
+.recommendations li {
+  margin-bottom: 8px;
+  color: #b8bac2;
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 44px 0;
+  }
+}

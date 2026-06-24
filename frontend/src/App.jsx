@@ -58,7 +58,9 @@ function App() {
   async function getRecommendations() {
     setRecommending(true);
 
-    const response = await fetch("http://localhost:8000/recommend/multiple", {
+    const response = await fetch(
+      "https://movie-suggestion-machine-learning.onrender.com/recommend/multiple",
+      {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -66,7 +68,8 @@ function App() {
       body: JSON.stringify({
         liked_movies: selectedMovies.map((movie) => movie.title),
       }),
-    });
+      },
+    );
 
     const data = await response.json();
     setRecommendations(data.recommendations);

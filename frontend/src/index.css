@@ -443,11 +443,23 @@ h1 {
 }
 
 .floating-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   background: rgba(255, 255, 255, 0.1);
   color: #d1d3d8;
   padding: 4px 10px;
   border-radius: 12px;
   font-size: 0.75rem;
+}
+
+.floating-remove {
+  color: #a7a9b1;
+  font-size: 1rem;
+}
+
+.floating-remove:hover {
+  color: #fff;
 }
 
 .floating-cta {
@@ -459,4 +471,37 @@ h1 {
   .floating-chips {
     display: none;
   }
+}
+
+/* Movie Posters */
+.movie-poster-container {
+  width: 100%;
+  height: 380px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  background: #1c1e26;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.movie-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.movie-card:hover .movie-poster {
+  transform: scale(1.05);
+}
+
+.movie-poster-container.placeholder {
+  border: 1px dashed #292b33;
+}
+
+.placeholder-icon {
+  font-size: 3rem;
+  opacity: 0.5;
 }

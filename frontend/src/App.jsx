@@ -22,6 +22,7 @@ function App() {
   const [recommendations, setRecommendations] = useState([]);
   const [viewState, setViewState] = useState("landing"); // 'landing' | 'selection' | 'loading' | 'results'
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
+  const [moviePosters, setMoviePosters] = useState({});
 
   useEffect(() => {
     if (viewState !== "landing") return;
@@ -91,6 +92,46 @@ function App() {
   const recommendedMovies = topRecommendations.map((title) =>
     movies.find((movie) => movie.title === title),
   );
+
+  useEffect(() => {
+    async function fetchPosters() {
+      const apiKey = "8f501dfe"; // Using provided OMDB API key
+
+      const postersToFetch = recommendedMovies.filter(m => m && m.id && !moviePosters[m.id]);
+      if (postersToFetch.length === 0) return;
+
+      const results = await Promise.all(
+        postersToFetch.map(async (movie) => {
+          try {
+            const response = await fetch(`https://www.omdbapi.com/?apikey=${apiKey}&t=${encodeURIComponent(movie.title)}`);
+            const data = await response.json();
+            // OMDB returns "N/A" if there is no poster
+            if (data.Poster && data.Poster !== "N/A") {
+              return { id: movie.id, path: data.Poster };
+            }
+          } catch (error) {
+            console.error("Error fetching poster for", movie.title, error);
+          }
+          return null;
+        })
+      );
+
+      const newPosters = {};
+      results.forEach(result => {
+        if (result) {
+          newPosters[result.id] = result.path;
+        }
+      });
+      
+      if (Object.keys(newPosters).length > 0) {
+        setMoviePosters(prev => ({ ...prev, ...newPosters }));
+      }
+    }
+
+    if (viewState === "results" && recommendedMovies.length > 0) {
+      fetchPosters();
+    }
+  }, [viewState, recommendations]); // Trigger when viewState or recommendations change
 
   function toggleMovie(movie) {
     const isSelected = selectedMovies.some(
@@ -254,7 +295,10 @@ function App() {
                 <span className="floating-count">{selectedMovies.length} / {REQUIRED_SELECTIONS} Selected</span>
                 <div className="floating-chips">
                   {selectedMovies.map(movie => (
-                    <span key={movie.id} className="floating-chip">{movie.title}</span>
+                    <span key={movie.id} className="floating-chip">
+                      {movie.title}
+                      <button onClick={() => toggleMovie(movie)} className="remove-chip floating-remove" aria-label="Remove">×</button>
+                    </span>
                   ))}
                 </div>
               </div>
@@ -294,6 +338,15 @@ function App() {
           <section className="movie-grid">
             {recommendedMovies.map((movie, index) => (
               <article className="movie-card result-card" key={topRecommendations[index]}>
+                {movie?.id && moviePosters[movie.id] ? (
+                  <div className="movie-poster-container">
+                    <img src={moviePosters[movie.id]} alt={`${movie?.title || topRecommendations[index]} poster`} className="movie-poster" />
+                  </div>
+                ) : (
+                  <div className="movie-poster-container placeholder">
+                    <span className="placeholder-icon">🎬</span>
+                  </div>
+                )}
                 <div className="card-header">
                   <p className="year">
                     {movie?.release_date?.slice(0, 4) || "Unknown year"}

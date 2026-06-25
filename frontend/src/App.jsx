@@ -14,6 +14,20 @@ const bgImages = [heroImage1, heroImage2, heroImage4, heroImage5, heroImage6, he
 const MOVIES_TO_SHOW = 20;
 const REQUIRED_SELECTIONS = 5;
 
+function formatRuntime(minutes) {
+  const mins = parseInt(minutes, 10);
+  if (!mins || isNaN(mins)) return "N/A";
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
+const API_BASE_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "http://127.0.0.1:8000"
+  : "https://movie-suggestion-machine-learning.onrender.com";
+
 function App() {
   const [movies, setMovies] = useState([]);
   const [search, setSearch] = useState("");
@@ -88,29 +102,38 @@ function App() {
     return { grouped, totalVisible };
   }, [movies, search, topGenres]);
 
+  // Backend now returns objects: { title, because_you_liked, interest_tags }
+  // Support both old (string) and new (object) formats
   const topRecommendations = recommendations.slice(0, 20);
-  const recommendedMovies = topRecommendations.map((title) =>
-    movies.find((movie) => movie.title === title),
-  );
+  const recommendedMovies = topRecommendations.map((rec) => {
+    const title = typeof rec === "string" ? rec : rec.title;
+    return {
+      movieData: movies.find((movie) => movie.title === title),
+      because_you_liked: typeof rec === "object" ? rec.because_you_liked : null,
+      interest_tags: typeof rec === "object" ? rec.interest_tags : [],
+      title,
+    };
+  });
 
   useEffect(() => {
     async function fetchPosters() {
       const apiKey = "8f501dfe"; // Using provided OMDB API key
 
-      const postersToFetch = recommendedMovies.filter(m => m && m.id && !moviePosters[m.id]);
+      const postersToFetch = recommendedMovies.filter(m => m?.movieData?.id && !moviePosters[m.movieData.id]);
       if (postersToFetch.length === 0) return;
 
       const results = await Promise.all(
-        postersToFetch.map(async (movie) => {
+        postersToFetch.map(async (rec) => {
+          const movie = rec.movieData;
           try {
-            const response = await fetch(`https://www.omdbapi.com/?apikey=${apiKey}&t=${encodeURIComponent(movie.title)}`);
+            const response = await fetch(`https://www.omdbapi.com/?apikey=${apiKey}&t=${encodeURIComponent(rec.title)}`);
             const data = await response.json();
             // OMDB returns "N/A" if there is no poster
             if (data.Poster && data.Poster !== "N/A") {
               return { id: movie.id, path: data.Poster };
             }
           } catch (error) {
-            console.error("Error fetching poster for", movie.title, error);
+            console.error("Error fetching poster for", rec.title, error);
           }
           return null;
         })
@@ -154,7 +177,7 @@ function App() {
 
     try {
       const response = await fetch(
-        "https://movie-suggestion-machine-learning.onrender.com/recommend/multiple",
+        `${API_BASE_URL}/recommend/multiple`,
         {
           method: "POST",
           headers: {
@@ -336,35 +359,56 @@ function App() {
           </header>
 
           <section className="movie-grid">
-            {recommendedMovies.map((movie, index) => (
-              <article className="movie-card result-card" key={topRecommendations[index]}>
-                {movie?.id && moviePosters[movie.id] ? (
-                  <div className="movie-poster-container">
-                    <img src={moviePosters[movie.id]} alt={`${movie?.title || topRecommendations[index]} poster`} className="movie-poster" />
+            {recommendedMovies.map((rec, index) => {
+              const movie = rec.movieData;
+              const posterId = movie?.id;
+              return (
+                <article className="movie-card result-card" key={rec.title}>
+                  {/* Rank number */}
+                  <span className="result-rank">#{index + 1}</span>
+
+                  {posterId && moviePosters[posterId] ? (
+                    <div className="movie-poster-container">
+                      <img src={moviePosters[posterId]} alt={`${rec.title} poster`} className="movie-poster" />
+                    </div>
+                  ) : (
+                    <div className="movie-poster-container placeholder">
+                      <span className="placeholder-icon">🎬</span>
+                    </div>
+                  )}
+
+                  <div className="card-header">
+                    <p className="year">{movie?.release_date?.slice(0, 4) || "Unknown year"}</p>
+                    <h2>{rec.title}</h2>
                   </div>
-                ) : (
-                  <div className="movie-poster-container placeholder">
-                    <span className="placeholder-icon">🎬</span>
-                  </div>
-                )}
-                <div className="card-header">
-                  <p className="year">
-                    {movie?.release_date?.slice(0, 4) || "Unknown year"}
+
+                  {rec.because_you_liked && (
+                    <div className="because-block">
+                      <span className="because-label">Because you liked</span>
+                      <span className="because-movie">🎬 {rec.because_you_liked}</span>
+                    </div>
+                  )}
+
+                  {rec.interest_tags && rec.interest_tags.length > 0 && (
+                    <div className="interest-tags">
+                      {rec.interest_tags.map(tag => (
+                        <span key={tag} className="interest-tag">#{tag}</span>
+                      ))}
+                    </div>
+                  )}
+
+                  <p className="overview">
+                    {movie?.overview || "No description available."}
                   </p>
-                  <h2>{movie?.title || topRecommendations[index]}</h2>
-                </div>
 
-                <p className="overview">
-                  {movie?.overview || "No description available."}
-                </p>
-
-                <div className="movie-details">
-                  <p>Rating: <span className="highlight">{movie?.vote_average || "N/A"}</span></p>
-                  <p>Language: {movie?.original_language || "N/A"}</p>
-                  <p>Runtime: {movie?.runtime || "N/A"}m</p>
-                </div>
-              </article>
-            ))}
+                  <div className="movie-details">
+                    <p>Rating: <span className="highlight">{movie?.vote_average || "N/A"}</span></p>
+                    <p>Language: {movie?.original_language || "N/A"}</p>
+                    <p>{formatRuntime(movie?.runtime)}</p>
+                  </div>
+                </article>
+              );
+            })}
           </section>
         </>
       )}
